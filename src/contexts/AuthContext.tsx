@@ -8,16 +8,18 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  isLawyer: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  checkIsAdmin: (email: string) => Promise<boolean>; // ✅ ADDED
+  checkIsAdmin: (email: string) => Promise<boolean>;
+  checkIsLawyer: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLawyer, setIsLawyer] = useState(false);
 
   // ✅ Check if user is admin (now a stable function)
   const checkIsAdmin = async (userEmail: string): Promise<boolean> => {
@@ -50,16 +53,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const checkIsLawyer = async (userEmail: string): Promise<boolean> => {
+    try {
+      const q = query(collection(db, 'lawyers'), where('email', '==', userEmail), where('active', '==', true));
+      const snap = await getDocs(q);
+      return !snap.empty;
+    } catch (error) {
+      console.error('Error checking lawyer status:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       
-      // Check admin status
+      // Check roles
       if (user?.email) {
-        const adminStatus = await checkIsAdmin(user.email);
+        const [adminStatus, lawyerStatus] = await Promise.all([
+          checkIsAdmin(user.email),
+          checkIsLawyer(user.email)
+        ]);
         setIsAdmin(adminStatus);
+        setIsLawyer(lawyerStatus);
       } else {
         setIsAdmin(false);
+        setIsLawyer(false);
       }
       
       setLoading(false);
@@ -79,16 +98,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = async () => {
     await firebaseSignOut(auth);
     setIsAdmin(false);
+    setIsLawyer(false);
   };
 
   const value = {
     user,
     loading,
     isAdmin,
+    isLawyer,
     signIn,
     signUp,
     signOut,
-    checkIsAdmin, // ✅ ADDED to value
+    checkIsAdmin,
+    checkIsLawyer,
   };
 
   return (

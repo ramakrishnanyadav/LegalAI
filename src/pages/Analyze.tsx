@@ -276,6 +276,66 @@ const Analyze = () => {
                 </p>
               </div>
 
+              {/* Premium Features Teaser - Show only for guests */}
+              {!user && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 glass rounded-2xl p-5 border-2 border-yellow-500/30 bg-gradient-to-r from-yellow-500/5 to-orange-500/5"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+                      ✨
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-bold mb-1 flex items-center gap-2">
+                        Unlock Premium Features - 100% FREE
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Login to get Victory Predictions, Cost Analysis, Duration Estimates, Legal Documents & more!
+                      </p>
+                      <div className="flex gap-2">
+                        <AnimatedButton
+                          onClick={() => navigate('/login', { state: { returnTo: '/analyze' } })}
+                          variant="primary"
+                          size="sm"
+                        >
+                          Login
+                        </AnimatedButton>
+                        <AnimatedButton
+                          onClick={() => navigate('/register', { state: { returnTo: '/analyze' } })}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Sign Up Free
+                        </AnimatedButton>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Premium Features Available - Show for logged-in users */}
+              {user && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 glass rounded-2xl p-4 border border-green-500/30 bg-gradient-to-r from-green-500/5 to-emerald-500/5"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-green-400">Premium Features Enabled</p>
+                      <p className="text-xs text-muted-foreground">
+                        You'll receive Victory Predictions, Cost Estimates, Legal Documents & more after analysis
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               <div className="glass rounded-2xl p-6 space-y-6">
                 {/* Case Type */}
                 <div>

@@ -1,4 +1,5 @@
-import { TrendingUp, Clock, DollarSign } from 'lucide-react';
+import { TrendingUp, Clock, DollarSign, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const PremiumFeatureCards = ({ actionPlan }: { actionPlan: any }) => {
   const vp = actionPlan?.victoryPrediction;
@@ -8,38 +9,87 @@ export const PremiumFeatureCards = ({ actionPlan }: { actionPlan: any }) => {
   if (!vp && !de && !dc) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Victory Prediction Card */}
       {vp && (
-        <div className="p-6 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-950">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5 text-green-600" />
-            <h3 className="font-bold text-green-700">Victory Chance</h3>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="relative overflow-hidden rounded-2xl border-2 border-green-500/50 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent backdrop-blur-sm group hover:border-green-500 transition-all"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl group-hover:bg-green-500/20 transition-all"></div>
+          <div className="relative p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 rounded-lg bg-green-500/20 border border-green-500/30">
+                <TrendingUp className="w-5 h-5 text-green-400" />
+              </div>
+              <h3 className="font-bold text-foreground">Victory Prediction</h3>
+              <Sparkles className="w-4 h-4 text-green-400 ml-auto" />
+            </div>
+            <div className="text-7xl font-black bg-gradient-to-br from-green-400 to-green-600 bg-clip-text text-transparent mb-3">
+              {vp.victoryChance}%
+            </div>
+            <div className="text-base font-semibold text-green-400 mb-2">{vp.verdict}</div>
+            <p className="text-xs text-muted-foreground leading-relaxed">{vp.reasoning?.substring(0, 100)}...</p>
           </div>
-          <div className="text-6xl font-black text-green-600 mb-2">{vp.victoryChance}%</div>
-          <div className="text-sm font-semibold text-green-700">{vp.verdict}</div>
-        </div>
+        </motion.div>
       )}
       
+      {/* Duration Estimate Card */}
       {de && (
-        <div className="p-6 rounded-xl border-2 border-purple-500 bg-purple-50 dark:bg-purple-950">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-5 h-5 text-purple-600" />
-            <h3 className="font-bold text-purple-700">Duration</h3>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="relative overflow-hidden rounded-2xl border-2 border-purple-500/50 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent backdrop-blur-sm group hover:border-purple-500 transition-all"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all"></div>
+          <div className="relative p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/30">
+                <Clock className="w-5 h-5 text-purple-400" />
+              </div>
+              <h3 className="font-bold text-foreground">Case Duration</h3>
+              <Sparkles className="w-4 h-4 text-purple-400 ml-auto" />
+            </div>
+            <div className="text-6xl font-black bg-gradient-to-br from-purple-400 to-purple-600 bg-clip-text text-transparent mb-3">
+              {de.totalDuration?.average}
+            </div>
+            <div className="text-sm text-purple-400 font-semibold mb-2">
+              Range: {de.totalDuration?.minimum} - {de.totalDuration?.maximum}
+            </div>
+            <p className="text-xs text-muted-foreground">Estimated timeline from filing to resolution</p>
           </div>
-          <div className="text-5xl font-black text-purple-600 mb-2">{de.totalDuration?.average}</div>
-          <div className="text-xs text-purple-600">{de.totalDuration?.minimum} - {de.totalDuration?.maximum}</div>
-        </div>
+        </motion.div>
       )}
       
+      {/* Cost Estimate Card */}
       {dc && (
-        <div className="p-6 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950">
-          <div className="flex items-center gap-2 mb-3">
-            <DollarSign className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-bold text-emerald-700">Cost</h3>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent backdrop-blur-sm group hover:border-emerald-500 transition-all"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all"></div>
+          <div className="relative p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30">
+                <DollarSign className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="font-bold text-foreground">Estimated Cost</h3>
+              <Sparkles className="w-4 h-4 text-emerald-400 ml-auto" />
+            </div>
+            <div className="text-6xl font-black bg-gradient-to-br from-emerald-400 to-emerald-600 bg-clip-text text-transparent mb-3">
+              {dc.summary?.averageCost}
+            </div>
+            <div className="text-sm text-emerald-400 font-semibold mb-2">
+              Range: {dc.summary?.minimumCost} - {dc.summary?.maximumCost}
+            </div>
+            <p className="text-xs text-muted-foreground">Total legal fees and court expenses</p>
           </div>
-          <div className="text-5xl font-black text-emerald-600 mb-2">{dc.summary?.averageCost}</div>
-          <div className="text-xs text-emerald-600">{dc.summary?.minimumCost} - {dc.summary?.maximumCost}</div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

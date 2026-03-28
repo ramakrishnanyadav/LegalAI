@@ -1,5 +1,5 @@
 // API Configuration - ✅ FIXED URL
-const API_BASE = import.meta.env.VITE_API_URL || 'https://legal-ai-roc4.onrender.com';
+const API_BASE = 'http://localhost:8000';
 
 // Type Definitions matching your CrimeAnalyzer
 export interface IPCSection {
@@ -68,18 +68,14 @@ export async function analyzeCase(data: AnalyzeCaseRequest): Promise<AnalyzeCase
     
     console.log('🔐 Auth State:', user ? `Logged in as ${user.email}` : 'Guest user');
     
-    const response = await fetch(`${API_BASE}/api/analyze-case`, {
+    const response = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        description: data.description,
-        role: data.role || 'victim',
-        urgency: data.urgency || false,
-        // ✨ FIXED: Now properly sends auth data for premium features
-        user_id: user?.uid || null,
-        is_authenticated: !!user,
+        case_text: data.description,
+        language: "en"
       }),
     });
 
@@ -130,15 +126,15 @@ function transformBackendResponse(backendData: any): AnalyzeCaseResponse {
 
   // Transform sections
   const sections: IPCSection[] = (backendData.sections || []).map((section: any, index: number) => ({
-    code: section.code,
+    code: section.bns_section || section.code || 'N/A',
     name: section.title || section.name || 'Unknown',
     title: section.title || section.name,
-    description: section.description,
+    description: section.reasoning || section.description,
     punishment: section.punishment,
-    bailable: section.bailable,
-    cognizable: section.cognizable,
+    bailable: section.severity?.toLowerCase().includes('non-bailable') ? false : true,
+    cognizable: section.is_cognizable ?? section.cognizable,
     confidence: section.confidence || 70,
-    matchedKeywords: section.matchedKeywords || extractKeywords(section.description || ''),
+    matchedKeywords: section.matchedKeywords || extractKeywords(section.reasoning || section.description || ''),
     reasoning: section.reasoning || section.description || 'Analysis based on provided information',
     isPrimary: section.isPrimary !== undefined ? section.isPrimary : index === 0,
   }));

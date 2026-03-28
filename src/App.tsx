@@ -14,6 +14,7 @@ import { analytics } from "@/hooks/useAnalytics";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
+import LawyerRoute from "@/components/LawyerRoute";
 
 // Lazy load public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -28,6 +29,8 @@ const Lawyers = lazy(() => import("./pages/Lawyers"));
 const Profile = lazy(() => import("./pages/Profile"));
 const CaseDetail = lazy(() => import("./pages/CaseDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const BNSAnalyze = lazy(() => import("./pages/BNSAnalyze")); // ✅ BNS AI Streaming Analysis
+const CaseResult = lazy(() => import("./pages/CaseResult")); // ✅ Case result hub
 
 // ✅ Lazy load admin pages
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin")); // ✅ ADDED
@@ -35,6 +38,9 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const ManageLawyers = lazy(() => import("./pages/admin/ManageLawyers"));
 const ViewConsultations = lazy(() => import("./pages/admin/ViewConsultations"));
 const ViewAllCases = lazy(() => import("./pages/admin/ViewAllCases"));
+
+// ✅ Lazy load lawyer pages
+const LawyerDashboard = lazy(() => import("./pages/lawyer/LawyerDashboard"));
 
 // Optimized query client with SWR-like caching
 const queryClient = new QueryClient({
@@ -144,6 +150,26 @@ const App = () => {
                         </ProtectedRoute>
                       } 
                     />
+                    {/* ✅ BNS AI Streaming Analysis */}
+                    <Route 
+                      path="/bns-analysis" 
+                      element={
+                        <ProtectedRoute>
+                          <BNSAnalyze />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    {/* Redirect legacy /bns route */}
+                    <Route path="/bns" element={<Navigate to="/bns-analysis" replace />} />
+                    {/* ✅ Case Result Hub */}
+                    <Route 
+                      path="/case/:id" 
+                      element={
+                        <ProtectedRoute>
+                          <CaseResult />
+                        </ProtectedRoute>
+                      } 
+                    />
                     <Route 
                       path="/lawyers" 
                       element={
@@ -220,6 +246,19 @@ const App = () => {
                         <AdminRoute>
                           <ViewAllCases />
                         </AdminRoute>
+                      } 
+                    />
+
+                    {/* ============================================ */}
+                    {/* ✅ LAWYER ROUTES */}
+                    {/* ============================================ */}
+                    
+                    <Route 
+                      path="/lawyer/dashboard" 
+                      element={
+                        <LawyerRoute>
+                          <LawyerDashboard />
+                        </LawyerRoute>
                       } 
                     />
 

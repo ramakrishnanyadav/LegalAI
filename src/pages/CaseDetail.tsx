@@ -18,7 +18,9 @@ import {
   Menu as MenuIcon,
   X,
   Loader2,
-  Edit3
+  Edit3,
+  Sparkles,
+  Target
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCaseById, CaseRecord, FIRData } from '@/lib/storage';
@@ -595,19 +597,37 @@ const CaseDetail = () => {
 
           {/* Premium Features Section */}
           {caseData.analysisResults?.actionPlan && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-4">Premium Analysis</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Premium AI Analysis</h2>
+                  <p className="text-sm text-muted-foreground">Personalized insights and predictions</p>
+                </div>
+              </div>
               
               {/* Premium Feature Cards */}
-              <div className="mb-6">
-                <PremiumFeatureCards actionPlan={caseData.analysisResults.actionPlan} />
-              </div>
+              <PremiumFeatureCards actionPlan={caseData.analysisResults.actionPlan} />
               
               {/* Full Action Plan */}
-              <div className="glass rounded-2xl p-6">
-                <ActionPlanCard actionPlan={caseData.analysisResults.actionPlan} />
+              <div className="glass rounded-2xl overflow-hidden border border-white/10">
+                <div className="bg-gradient-to-r from-primary/10 to-purple/10 p-4 border-b border-white/10">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <Target className="w-5 h-5 text-primary" />
+                    Detailed Action Plan
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <ActionPlanCard actionPlan={caseData.analysisResults.actionPlan} />
+                </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Evidence Management Section */}

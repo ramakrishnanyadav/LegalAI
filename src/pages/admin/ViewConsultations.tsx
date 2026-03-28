@@ -19,7 +19,7 @@ import {
   MapPin,
   FileText
 } from 'lucide-react';
-import { collection, getDocs, query, orderBy, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 
@@ -38,6 +38,14 @@ interface Consultation {
   createdAt: any;
 }
 
+const safeFormatDate = (dateVal: any) => {
+  if (!dateVal) return 'Unknown Date';
+  if (typeof dateVal === 'string') return new Date(dateVal).toLocaleDateString();
+  if (dateVal.toDate && typeof dateVal.toDate === 'function') return dateVal.toDate().toLocaleDateString();
+  if (dateVal instanceof Date) return dateVal.toLocaleDateString();
+  return 'Unknown Date';
+};
+
 const ViewConsultations = () => {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [filteredConsultations, setFilteredConsultations] = useState<Consultation[]>([]);
@@ -50,7 +58,26 @@ const ViewConsultations = () => {
   const [showModal, setShowModal] = useState(false); // ✅ ADDED
 
   useEffect(() => {
-    loadConsultations();
+    setLoading(true);
+    const q = query(
+      collection(db, 'consultationRequests'),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const consultationsData: Consultation[] = [];
+      snapshot.forEach((doc) => {
+        consultationsData.push({ id: doc.id, ...doc.data() } as Consultation);
+      });
+      setConsultations(consultationsData);
+      setFilteredConsultations(consultationsData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error loading consultations:', error);
+      toast.error('Failed to sync consultations');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -71,28 +98,6 @@ const ViewConsultations = () => {
     setFilteredConsultations(filtered);
   }, [searchQuery, filterStatus, consultations]);
 
-  const loadConsultations = async () => {
-    setLoading(true);
-    try {
-      const q = query(
-        collection(db, 'consultationRequests'),
-        orderBy('createdAt', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      const consultationsData: Consultation[] = [];
-      querySnapshot.forEach((doc) => {
-        consultationsData.push({ id: doc.id, ...doc.data() } as Consultation);
-      });
-      setConsultations(consultationsData);
-      setFilteredConsultations(consultationsData);
-    } catch (error) {
-      console.error('Error loading consultations:', error);
-      toast.error('Failed to load consultations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const updateStatus = async (consultationId: string, newStatus: 'accepted' | 'rejected') => {
     try {
       await updateDoc(doc(db, 'consultationRequests', consultationId), {
@@ -100,7 +105,6 @@ const ViewConsultations = () => {
         updatedAt: new Date().toISOString(),
       });
       toast.success(`Consultation ${newStatus}`);
-      loadConsultations();
       setShowModal(false); // ✅ Close modal after update
     } catch (error) {
       console.error('Error updating status:', error);
@@ -148,7 +152,6 @@ const ViewConsultations = () => {
       toast.success(`${selectedIds.size} consultation(s) ${newStatus}`);
       setSelectedIds(new Set());
       setSelectAll(false);
-      loadConsultations();
     } catch (error) {
       toast.error('Failed to update consultations');
     }
@@ -355,21 +358,22 @@ const ViewConsultations = () => {
                   </label>
 
                   <div className="flex-1 flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-bold text-lg">{consultation.userName}</h3>
-                      <span className={`text-xs px-2 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(consultation.status)}`}>
-                        {getStatusIcon(consultation.status)}
-                        {consultation.status}
-                      </span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-bold text-lg">{consultation.userName}</h3>
+                        <span className={`text-xs px-2 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(consultation.status)}`}>
+                          {getStatusIcon(consultation.status)}
+                          {consultation.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{consultation.userEmail}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{consultation.userEmail}</p>
-                  </div>
-                  <div className="text-right text-sm text-muted-foreground">
-                    <p className="flex items-center gap-1 justify-end">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(consultation.createdAt.toDate()).toLocaleDateString()}
-                    </p>
+                    <div className="text-right text-sm text-muted-foreground">
+                      <p className="flex items-center gap-1 justify-end">
+                        <Calendar className="w-4 h-4" />
+                        {safeFormatDate(consultation.createdAt)}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -398,7 +402,6 @@ const ViewConsultations = () => {
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* ✅ FIXED: Now opens modal */}
                   <button
                     onClick={() => handleViewDetails(consultation)}
                     className="px-4 py-2 rounded-lg glass hover:bg-white/5 text-sm flex items-center gap-2 transition-colors"
@@ -429,6 +432,7 @@ const ViewConsultations = () => {
             ))}
           </div>
         )}
+      </div>
       </main>
 
       {/* ✅ VIEW DETAILS MODAL */}
@@ -531,7 +535,7 @@ const ViewConsultations = () => {
                       Requested On:
                     </p>
                     <p className="text-sm font-medium">
-                      {new Date(selectedConsultation.createdAt.toDate()).toLocaleString()}
+                      {safeFormatDate(selectedConsultation.createdAt)}
                     </p>
                   </div>
                   <div>
@@ -574,8 +578,6 @@ const ViewConsultations = () => {
           </motion.div>
         )}
       </AnimatePresence>
-        </div>
-      </main>
     </div>
   );
 };

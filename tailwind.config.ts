@@ -142,8 +142,8 @@ export default {
           "50%": { backgroundPosition: "100% 50%" },
         },
         "shimmer": {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+          "0%": { transform: "translateX(-150%)" },
+          "100%": { transform: "translateX(150%)" },
         },
       },
       animation: {

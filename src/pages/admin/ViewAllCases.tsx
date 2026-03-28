@@ -38,6 +38,14 @@ interface CaseData {
   };
 }
 
+const safeFormatDate = (dateVal: any) => {
+  if (!dateVal) return 'Unknown Date';
+  if (typeof dateVal === 'string') return new Date(dateVal).toLocaleDateString();
+  if (dateVal.toDate && typeof dateVal.toDate === 'function') return dateVal.toDate().toLocaleDateString();
+  if (dateVal instanceof Date) return dateVal.toLocaleDateString();
+  return 'Unknown Date';
+};
+
 const ViewAllCases = () => {
   const [cases, setCases] = useState<CaseData[]>([]);
   const [filteredCases, setFilteredCases] = useState<CaseData[]>([]);
@@ -254,7 +262,7 @@ const ViewAllCases = () => {
                   <div className="text-right text-sm text-muted-foreground">
                     <p className="flex items-center gap-1 justify-end">
                       <Calendar className="w-4 h-4" />
-                      {new Date(caseItem.createdAt.toDate()).toLocaleDateString()}
+                      {safeFormatDate(caseItem.createdAt)}
                     </p>
                   </div>
                 </div>

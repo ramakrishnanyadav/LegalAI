@@ -165,63 +165,147 @@ const AnalyzeResults = () => {
           className="text-center mb-8"
         >
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.2 }}
-            className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', delay: 0.2, duration: 0.6 }}
+            className="relative w-24 h-24 mx-auto mb-6"
           >
-            <CheckCircle2 className="w-10 h-10 text-green-400" />
+            <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600 rounded-full blur-xl opacity-50"></div>
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center border-2 border-green-500/50">
+              <CheckCircle2 className="w-12 h-12 text-green-400" />
+            </div>
           </motion.div>
-          <h1 className="text-4xl font-bold mb-2">
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-4xl md:text-5xl font-bold mb-3"
+          >
             <span className="gradient-text">Analysis Complete!</span>
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            We've identified applicable laws and created your action plan
-          </p>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-muted-foreground text-lg max-w-2xl mx-auto"
+          >
+            AI-powered legal analysis with {results.sections.length} applicable sections and personalized insights
+          </motion.p>
         </motion.div>
 
         {/* Tab Navigation */}
-        <div className="glass rounded-2xl p-2 mb-6 flex gap-2">
-          <button
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="glass rounded-2xl p-2 mb-6 flex gap-2 border border-white/10"
+        >
+          <motion.button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'overview'
-                ? 'bg-primary text-white shadow-lg shadow-primary/50'
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/50'
                 : 'hover:bg-white/5'
             }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="flex items-center justify-center gap-2">
               <FileText className="w-5 h-5" />
-              <span>Legal Analysis</span>
+              <span className="hidden sm:inline">Legal Analysis</span>
+              <span className="sm:hidden">Analysis</span>
             </div>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('action-plan')}
-            className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all relative ${
               activeTab === 'action-plan'
-                ? 'bg-primary text-white shadow-lg shadow-primary/50'
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/50'
                 : 'hover:bg-white/5'
             }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="flex items-center justify-center gap-2">
               <Target className="w-5 h-5" />
-              <span>Action Plan</span>
+              <span className="hidden sm:inline">Action Plan</span>
+              <span className="sm:hidden">Plan</span>
+              {results.actionPlan && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-background"
+                />
+              )}
             </div>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('documents')}
             className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
               activeTab === 'documents'
-                ? 'bg-primary text-white shadow-lg shadow-primary/50'
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/50'
                 : 'hover:bg-white/5'
             }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="flex items-center justify-center gap-2">
               <BookOpen className="w-5 h-5" />
-              <span>Documents</span>
+              <span className="hidden sm:inline">Documents</span>
+              <span className="sm:hidden">Docs</span>
             </div>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
+
+        {/* Premium Features Banner - Show at top if available */}
+        {results.actionPlan ? (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <PremiumFeatureCards actionPlan={results.actionPlan} />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 glass rounded-2xl p-6 border-2 border-yellow-500/30 bg-gradient-to-r from-yellow-500/5 to-orange-500/5"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+                <Target className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                  🔒 Premium Features Available
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold">
+                    FREE
+                  </span>
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Login to unlock Victory Prediction, Duration Estimate, Cost Analysis, and more!
+                </p>
+                <div className="flex gap-3">
+                  <AnimatedButton
+                    onClick={() => navigate('/login', { state: { returnTo: location.pathname, results } })}
+                    variant="primary"
+                    size="sm"
+                  >
+                    Login Now
+                  </AnimatedButton>
+                  <AnimatedButton
+                    onClick={() => navigate('/register', { state: { returnTo: location.pathname, results } })}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Sign Up Free
+                  </AnimatedButton>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
@@ -655,38 +739,130 @@ const AnalyzeResults = () => {
             {results.documents ? (
               <DocumentViewer documents={results.documents} />
             ) : (
-              <div className="glass rounded-2xl p-12 text-center">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-bold mb-2">Documents Not Available</h3>
-                <p className="text-muted-foreground mb-4">
-                  {location.state?.results ? (
-                    'Document generation is processing. Please check back in a few moments or contact support if this persists.'
-                  ) : (
-                    'Premium document generation is only available for logged-in users.'
-                  )}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="glass rounded-2xl p-12 text-center border-2 border-primary/30 relative overflow-hidden"
+              >
+                {/* Premium Badge */}
+                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold uppercase">
+                  Premium Documents
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple/20 rounded-full blur-3xl opacity-50"></div>
+                  <FileText className="w-20 h-20 mx-auto mb-6 text-primary relative" />
+                </div>
+                
+                <h3 className="text-2xl font-bold mb-3 gradient-text">Unlock Legal Documents</h3>
+                <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                  Get professionally drafted legal documents tailored to your case - ready to file.
                 </p>
-                {!location.state?.results && (
-                  <p className="text-sm text-muted-foreground text-center">
-                    Login to access FIR drafts, written complaints, and evidence checklists.
-                  </p>
-                )}
-              </div>
+                
+                {/* Document Types */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/30">
+                    <div className="text-2xl font-bold text-blue-400 mb-2">FIR Draft</div>
+                    <p className="text-sm text-muted-foreground">Ready-to-file police complaint</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 border border-indigo-500/30">
+                    <div className="text-2xl font-bold text-indigo-400 mb-2">Written Complaint</div>
+                    <p className="text-sm text-muted-foreground">Court-ready complaint format</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-cyan-600/10 border border-cyan-500/30">
+                    <div className="text-2xl font-bold text-cyan-400 mb-2">Evidence Checklist</div>
+                    <p className="text-sm text-muted-foreground">Complete documentation guide</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 justify-center">
+                  <AnimatedButton
+                    onClick={() => navigate('/login', { state: { returnTo: '/analyze-results', results } })}
+                    variant="primary"
+                    size="lg"
+                    className="min-w-[200px]"
+                  >
+                    Login to Download
+                  </AnimatedButton>
+                  <AnimatedButton
+                    onClick={() => navigate('/register', { state: { returnTo: '/analyze-results', results } })}
+                    variant="secondary"
+                    size="lg"
+                    className="min-w-[200px]"
+                  >
+                    Create Account
+                  </AnimatedButton>
+                </div>
+                
+                <p className="text-xs text-muted-foreground mt-4">
+                  100% Free • Professional Templates • Instant Download
+                </p>
+              </motion.div>
             )}
           </>
         )}
 
-        {/* No Action Plan Message */}
+        {/* No Action Plan Message - Enhanced Premium Prompt */}
         {activeTab === 'action-plan' && !results.actionPlan && (
-          <div className="glass rounded-2xl p-12 text-center">
-            <Target className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-bold mb-2">Action Plan Not Available</h3>
-            <p className="text-muted-foreground mb-4">
-              Premium action plan is only available for logged-in users.
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass rounded-2xl p-12 text-center border-2 border-primary/30 relative overflow-hidden"
+          >
+            {/* Premium Badge */}
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold uppercase">
+              Premium Feature
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple/20 rounded-full blur-3xl opacity-50"></div>
+              <Target className="w-20 h-20 mx-auto mb-6 text-primary relative" />
+            </div>
+            
+            <h3 className="text-2xl font-bold mb-3 gradient-text">Unlock Premium Action Plan</h3>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Get personalized legal action plans with AI-powered insights, cost estimates, victory predictions, and case duration analysis.
             </p>
-            <p className="text-sm text-muted-foreground text-center">
-              Login to access personalized action plans with timelines and costs.
+            
+            {/* Premium Features List */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/30">
+                <div className="text-3xl font-bold text-green-400 mb-2">Victory %</div>
+                <p className="text-sm text-muted-foreground">AI-powered win probability analysis</p>
+              </div>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/30">
+                <div className="text-3xl font-bold text-purple-400 mb-2">Timeline</div>
+                <p className="text-sm text-muted-foreground">Detailed case duration estimates</p>
+              </div>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 border border-emerald-500/30">
+                <div className="text-3xl font-bold text-emerald-400 mb-2">Costs</div>
+                <p className="text-sm text-muted-foreground">Comprehensive legal fee breakdown</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 justify-center">
+              <AnimatedButton
+                onClick={() => navigate('/login', { state: { returnTo: '/analyze-results', results } })}
+                variant="primary"
+                size="lg"
+                className="min-w-[200px]"
+              >
+                Login to Unlock
+              </AnimatedButton>
+              <AnimatedButton
+                onClick={() => navigate('/register', { state: { returnTo: '/analyze-results', results } })}
+                variant="secondary"
+                size="lg"
+                className="min-w-[200px]"
+              >
+                Create Account
+              </AnimatedButton>
+            </div>
+            
+            <p className="text-xs text-muted-foreground mt-4">
+              100% Free • No Credit Card Required • Instant Access
             </p>
-          </div>
+          </motion.div>
         )}
       </main>
     </div>

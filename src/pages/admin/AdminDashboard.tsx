@@ -19,9 +19,17 @@ import {
   XCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
+
+const safeFormatDate = (dateVal: any) => {
+  if (!dateVal) return 'Unknown Date';
+  if (typeof dateVal === 'string') return new Date(dateVal).toLocaleDateString();
+  if (dateVal.toDate && typeof dateVal.toDate === 'function') return dateVal.toDate().toLocaleDateString();
+  if (dateVal instanceof Date) return dateVal.toLocaleDateString();
+  return 'Unknown Date';
+};
 
 const AdminDashboard = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -38,51 +46,38 @@ const AdminDashboard = () => {
   const [recentConsultations, setRecentConsultations] = useState<any[]>([]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
     setLoading(true);
-    try {
-      // Get lawyers count
-      const lawyersSnap = await getDocs(collection(db, 'lawyers'));
-      const lawyers = lawyersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const activeLawyers = lawyers.filter((l: any) => l.active).length;
 
-      // Get consultations
-      const consultationsSnap = await getDocs(collection(db, 'consultationRequests'));
-      const consultations = consultationsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const pendingConsultations = consultations.filter((c: any) => c.status === 'pending').length;
+    const unsubLawyers = onSnapshot(collection(db, 'lawyers'), (snap) => {
+      const activeLawyers = snap.docs.filter(doc => doc.data().active).length;
+      setStats(prev => ({ ...prev, totalLawyers: snap.size, activeLawyers }));
+    }, (err) => console.error(err));
 
-      // Get recent consultations
-      const recentQuery = query(
-        collection(db, 'consultationRequests'),
-        orderBy('createdAt', 'desc'),
-        limit(5)
-      );
-      const recentSnap = await getDocs(recentQuery);
-      const recent = recentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const unsubConsultations = onSnapshot(collection(db, 'consultationRequests'), (snap) => {
+      const pendingConsultations = snap.docs.filter(doc => doc.data().status === 'pending').length;
+      setStats(prev => ({ ...prev, totalConsultations: snap.size, pendingConsultations }));
+    }, (err) => console.error(err));
 
-      // Get cases count
-      const casesSnap = await getDocs(collection(db, 'cases'));
+    const recentQuery = query(collection(db, 'consultationRequests'), orderBy('createdAt', 'desc'), limit(5));
+    const unsubRecent = onSnapshot(recentQuery, (snap) => {
+      setRecentConsultations(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (err) => console.error(err));
 
-      setStats({
-        totalLawyers: lawyers.length,
-        activeLawyers,
-        totalConsultations: consultations.length,
-        pendingConsultations,
-        totalCases: casesSnap.size,
-        totalUsers: 0, // You can add user collection if needed
-      });
-
-      setRecentConsultations(recent);
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
+    const unsubCases = onSnapshot(collection(db, 'cases'), (snap) => {
+      setStats(prev => ({ ...prev, totalCases: snap.size }));
       setLoading(false);
-    }
-  };
+    }, (err) => {
+      console.error(err);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubLawyers();
+      unsubConsultations();
+      unsubRecent();
+      unsubCases();
+    };
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -327,7 +322,7 @@ const AdminDashboard = () => {
                         </p>
                       </div>
                       <div className="text-right text-sm text-muted-foreground">
-                        <p>{new Date(consultation.createdAt.toDate()).toLocaleDateString()}</p>
+                        <p>{safeFormatDate(consultation.createdAt)}</p>
                         <p>{consultation.preferredDate}</p>
                       </div>
                     </div>

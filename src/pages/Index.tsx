@@ -1,5 +1,6 @@
 // src/pages/Index.tsx - COMPLETE WORKING VERSION
 import { Suspense, lazy } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -8,7 +9,6 @@ import HeroSection from '@/components/HeroSection';
 import ScrollReveal from '@/components/ScrollReveal';
 
 // Lazy load heavy components
-const CrimeAnalyzer = lazy(() => import('@/components/CrimeAnalyzer'));
 const ProceduralTimeline = lazy(() => import('@/components/ProceduralTimeline'));
 
 // Import LawyerMarketplace directly (not lazy) so it shows immediately
@@ -48,6 +48,8 @@ const SectionSkeleton = () => (
 );
 
 const Index = () => {
+  const { user, isLawyer } = useAuth();
+  
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
       {/* Background Effects */}
@@ -65,15 +67,6 @@ const Index = () => {
       <main id="main-content" role="main" className="relative z-10">
         {/* Hero Section */}
         <HeroSection />
-        
-        {/* Crime Analyzer Section */}
-        <section id="analyzer" aria-label="Case analyzer">
-          <ScrollReveal type="fade">
-            <Suspense fallback={<SectionSkeleton />}>
-              <CrimeAnalyzer />
-            </Suspense>
-          </ScrollReveal>
-        </section>
         
         {/* Timeline Section */}
         <section id="timeline" aria-label="Legal timeline">

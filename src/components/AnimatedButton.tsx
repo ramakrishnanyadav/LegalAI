@@ -8,6 +8,7 @@ interface AnimatedButtonProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   loading?: boolean;
+  disabled?: boolean;
   icon?: ReactNode;
 }
 
@@ -21,6 +22,7 @@ const AnimatedButton = ({
   size = 'md',
   className = '',
   loading = false,
+  disabled = false,
   icon,
 }: AnimatedButtonProps) => {
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([]);
@@ -73,7 +75,7 @@ const AnimatedButton = ({
         duration: 0.15, 
         ease: easeOut 
       }}
-      disabled={loading}
+      disabled={disabled || loading}
     >
       {/* Subtle ripple effect */}
       {ripples.map((ripple) => (
