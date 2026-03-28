@@ -70,7 +70,7 @@ const Dashboard = () => {
   const stats = useMemo(() => ({
     total:    cases.length,
     strong:   cases.filter(c => c.strength >= 75).length,
-    evidence: cases.reduce((a, c) => a + c.evidence.length, 0),
+    evidence: cases.reduce((a, c) => a + (c.evidence?.length || 0), 0),
     filed:    cases.filter(c => c.status === 'filed' || c.status === 'resolved').length,
   }), [cases]);
 

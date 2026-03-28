@@ -19,16 +19,25 @@ import uuid
 if settings.gemini_api_key:
     genai.configure(api_key=settings.gemini_api_key)
 # --- Firebase Admin Init ---
+import os
 try:
     firebase_admin.get_app()
 except ValueError:
     try:
-        # Default application credentials (e.g. from environment variable GOOGLE_APPLICATION_CREDENTIALS)
-        cred = credentials.ApplicationDefault()
-        firebase_admin.initialize_app(cred)
-        print("Firebase Admin initialized via ApplicationDefault credentials.")
+        service_account_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+        if service_account_json:
+            import json
+            cred_dict = json.loads(service_account_json)
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+            print("Firebase Admin initialized via Production JSON Variable.")
+        else:
+            # Default application credentials fallback
+            cred = credentials.ApplicationDefault()
+            firebase_admin.initialize_app(cred)
+            print("Firebase Admin initialized via ApplicationDefault credentials.")
     except Exception as e:
-        print(f"Warning: Firebase Admin initialization via ApplicationDefault failed ({e}). Proceeding without production DB connection or utilizing mock connection.")
+        print(f"Warning: Firebase Admin initialization failed ({e}). Token verification will throw 401 unless configured.")
 
 # No custom rate limiter to avoid proxy header conflicts on serverless
 
@@ -55,7 +64,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 # --- CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=settings.allowed_origins + [
+        "https://legal-ai-chi-liart.vercel.app",
+        "*" # Broad allowance due to Render/Vercel port complexities in preview
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
