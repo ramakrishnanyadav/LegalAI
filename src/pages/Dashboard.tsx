@@ -354,7 +354,7 @@ const CaseCard = ({
 }: { caseData: SavedCase; onDelete: (id: string, e: React.MouseEvent) => void }) => {
   const sc = STATUS_CONFIG[caseData.status];
   const strengthColor = STRENGTH_COLOR(caseData.strength);
-  const nonBailable = caseData.analysis.sections.some(s => s.severity?.toLowerCase().includes('non-bail'));
+  const nonBailable = caseData.analysis?.sections?.some(s => s.severity?.toLowerCase().includes('non-bail')) || false;
 
   return (
     <motion.div
@@ -407,11 +407,11 @@ const CaseCard = ({
                 {caseData.primarySection || caseData.caseType}
               </span>
               <span>·</span>
-              <span>{caseData.analysis.sections.length} section{caseData.analysis.sections.length !== 1 ? 's' : ''}</span>
-              {caseData.evidence.length > 0 && (
+              <span>{caseData.analysis?.sections?.length || 0} section{(caseData.analysis?.sections?.length || 0) !== 1 ? 's' : ''}</span>
+              {(caseData.evidence?.length || 0) > 0 && (
                 <>
                   <span>·</span>
-                  <span>{caseData.evidence.length} evidence item{caseData.evidence.length !== 1 ? 's' : ''}</span>
+                  <span>{caseData.evidence?.length || 0} evidence item{(caseData.evidence?.length || 0) !== 1 ? 's' : ''}</span>
                 </>
               )}
               <span>·</span>

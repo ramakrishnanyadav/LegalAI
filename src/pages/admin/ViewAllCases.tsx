@@ -282,19 +282,19 @@ const ViewAllCases = () => {
                     <div className="text-center p-3 rounded-lg bg-white/5">
                       <p className="text-xs text-muted-foreground mb-1">Primary Section</p>
                       <p className="text-sm font-semibold">
-                        {caseItem.analysisResults.sections.find(s => s.isPrimary)?.code || 'N/A'}
+                        {caseItem.analysisResults?.sections?.find(s => s.isPrimary)?.code || 'N/A'}
                       </p>
                     </div>
                     <div className="text-center p-3 rounded-lg bg-white/5">
                       <p className="text-xs text-muted-foreground mb-1">Severity</p>
                       <p className="text-sm font-semibold text-yellow-400">
-                        {caseItem.analysisResults.severity}
+                        {caseItem.analysisResults?.severity || 'Not Assessed'}
                       </p>
                     </div>
                     <div className="text-center p-3 rounded-lg bg-white/5">
                       <p className="text-xs text-muted-foreground mb-1">Sections</p>
                       <p className="text-sm font-semibold">
-                        {caseItem.analysisResults.sections.length}
+                        {caseItem.analysisResults?.sections?.length || 0}
                       </p>
                     </div>
                   </div>
