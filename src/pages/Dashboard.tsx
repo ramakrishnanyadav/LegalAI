@@ -12,11 +12,17 @@ import { getAllCases, deleteCase } from '@/lib/caseStorage';
 import { SavedCase } from '@/types/case';
 import { toast } from 'sonner';
 
-const STATUS_CONFIG = {
+const STATUS_DEFAULT = { label: 'Unknown', color: '#94A3B8', bg: 'rgba(148,163,184,0.1)' };
+const STATUS_CONFIG: Record<string, typeof STATUS_DEFAULT> = {
   new:         { label: 'New',         color: '#60A5FA', bg: 'rgba(59,130,246,0.1)'  },
   in_progress: { label: 'In Progress', color: '#FCD34D', bg: 'rgba(252,211,77,0.1)' },
   filed:       { label: 'Filed',       color: '#34D399', bg: 'rgba(52,211,153,0.1)' },
   resolved:    { label: 'Resolved',    color: '#A3E635', bg: 'rgba(163,230,53,0.1)' },
+  // Legacy V1 status aliases
+  active:      { label: 'Active',      color: '#60A5FA', bg: 'rgba(59,130,246,0.1)'  },
+  pending:     { label: 'Pending',     color: '#FCD34D', bg: 'rgba(252,211,77,0.1)' },
+  open:        { label: 'Open',        color: '#60A5FA', bg: 'rgba(59,130,246,0.1)'  },
+  closed:      { label: 'Closed',      color: '#A3E635', bg: 'rgba(163,230,53,0.1)' },
 };
 
 const STRENGTH_COLOR = (s: number) =>
@@ -352,8 +358,8 @@ const Dashboard = () => {
 const CaseCard = ({
   caseData, onDelete,
 }: { caseData: SavedCase; onDelete: (id: string, e: React.MouseEvent) => void }) => {
-  const sc = STATUS_CONFIG[caseData.status];
-  const strengthColor = STRENGTH_COLOR(caseData.strength);
+  const sc = STATUS_CONFIG[caseData.status] ?? STATUS_DEFAULT;
+  const strengthColor = STRENGTH_COLOR(caseData.strength ?? 0);
   const nonBailable = caseData.analysis?.sections?.some(s => s.severity?.toLowerCase().includes('non-bail')) || false;
 
   return (

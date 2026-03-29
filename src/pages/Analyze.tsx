@@ -17,8 +17,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { analyzeCase, AnalyzeCaseResponse } from '@/lib/api';
-import { saveCaseRecord, FIRData, EvidenceChecklistData } from '@/lib/storage';
-import { removeUndefined } from '@/lib/firestoreUtils';
+import { createCase } from '@/lib/caseStorage';
 import AnimatedButton from '@/components/AnimatedButton';
 import AnimatedDropdown from '@/components/AnimatedDropdown';
 import UrgencyIndicator from '@/components/UrgencyIndicator';
@@ -112,95 +111,31 @@ const Analyze = () => {
 
   const saveCase = async (analysisResults: AnalyzeCaseResponse): Promise<string | null> => {
     if (!user) return null;
-
     try {
-      const primarySection = analysisResults.sections.find(s => s.isPrimary);
-      const relatedSections = analysisResults.sections.filter(s => !s.isPrimary);
-
-      const firData: FIRData = {
-        complainantName: '',
-        complainantAddress: '',
-        complainantPhone: '',
-        complainantEmail: user.email || '',
-        incidentDate: '',
-        incidentTime: '',
-        incidentPlace: '',
-        accusedDetails: '',
-        witnessDetails: '',
-        description: description,
-        primarySection: {
-          code: primarySection?.code || 'N/A',
-          name: primarySection?.name || 'Not determined',
-        },
-        relatedSections: relatedSections.map(s => ({
-          code: s.code || 'N/A',
-          name: s.name || 'N/A',
+      // Transform API response → AnalysisResponse shape expected by caseStorage
+      const analysis = {
+        sections: analysisResults.sections.map((s, i) => ({
+          ipc_section:   s.code || 'N/A',
+          bns_section:   s.code || 'N/A',
+          title:         s.name || 'Unknown',
+          confidence:    (s.confidence || 70) > 1 ? (s.confidence || 70) / 100 : (s.confidence || 70),
+          reasoning:     s.reasoning || s.description || '',
+          severity:      (s.bailable === false ? 'non-bailable' : 'bailable') as 'bailable' | 'non-bailable',
+          is_cognizable: s.cognizable ?? false,
+          punishment:    s.punishment || '',
         })),
-        generatedDate: new Date().toISOString(),
+        summary:            analysisResults.summary || '',
+        provider_used:      'gemini',
+        analysis_id:        `${Date.now()}`,
+        cached:             false,
+        processing_time_ms: 0,
+        disclaimer:         'AI-generated. Consult a qualified lawyer.',
       };
 
-      const evidenceChecklist: EvidenceChecklistData = {
-        items: [],
-        checkedItemIds: [],
-        completionPercentage: 0,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      const normalizeConfidence = (conf: number) => {
-        if (conf > 0 && conf <= 1) return Math.round(conf * 100);
-        return Math.min(Math.max(Math.round(conf), 0), 100);
-      };
-
-      const cleanAnalysisResults = {
-        ...analysisResults,
-        sections: analysisResults.sections.map(section => ({
-          code: section.code || 'N/A',
-          name: section.name || 'N/A',
-          description: section.description || '',
-          confidence: normalizeConfidence(section.confidence || 0),
-          isPrimary: section.isPrimary || false,
-          reasoning: section.reasoning || '',
-          matchedKeywords: section.matchedKeywords || [],
-          punishment: section.punishment || '',
-          bailable: section.bailable || false,
-          cognizable: section.cognizable || false,
-        })),
-        severity: analysisResults.severity || 'Unknown',
-        maxPunishment: analysisResults.maxPunishment || 'To be determined',
-        punishmentNote: analysisResults.punishmentNote || '',
-        bail: analysisResults.bail || 'To be determined',
-        bailProbability: normalizeConfidence(analysisResults.bailProbability || 50),
-        overallConfidence: normalizeConfidence(analysisResults.overallConfidence || 50),
-        next_steps: analysisResults.next_steps || [],
-        // 🆕 PREMIUM FEATURES - Store in Firebase
-        actionPlan: analysisResults.actionPlan || null,
-        documents: analysisResults.documents || null,
-        // Store individual premium features for easy access
-        victoryPrediction: analysisResults.actionPlan?.victoryPrediction || null,
-        durationEstimate: analysisResults.actionPlan?.durationEstimate || null,
-        detailedCosts: analysisResults.actionPlan?.detailedCosts || null,
-      };
-
-      const caseData = removeUndefined({
-        userId: user.uid,
-        userName: user.email?.split('@')[0] || 'User',
-        caseType: caseType,
-        isUrgent: isUrgent,
-        description: description,
-        analysisResults: cleanAnalysisResults,
-        firData: firData,
-        evidenceFiles: [],
-        evidenceChecklist: evidenceChecklist,
-        status: 'draft' as const,
-      });
-
-      const caseId = await saveCaseRecord(caseData);
-      if (caseId) {
-        setCurrentCaseId(caseId);
-        toast.success('Case saved successfully');
-        return caseId;
-      }
-      return null;
+      const saved = await createCase(user.uid, user.email?.split('@')[0] || 'User', description, analysis);
+      setCurrentCaseId(saved.id);
+      toast.success('Case saved successfully');
+      return saved.id;
     } catch (error) {
       console.error('Error saving case:', error);
       toast.error('Failed to save case');

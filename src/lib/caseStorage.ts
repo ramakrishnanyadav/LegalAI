@@ -89,6 +89,62 @@ export async function createCase(
   return saved;
 }
 
+// ── Schema Normalizer ────────────────────────────────────────────────────────
+// Handles mixed Firestore documents written by both caseStorage.ts (analysis/evidence)
+// and storage.ts (analysisResults/evidenceFiles) — maps everything to SavedCase shape.
+function normalizeCase(id: string, data: Record<string, any>): SavedCase {
+  // Map analysisResults → analysis (new Analyze.tsx schema)
+  if (!data.analysis && data.analysisResults) {
+    const ar = data.analysisResults;
+    data.analysis = {
+      sections: (ar.sections || []).map((s: any) => ({
+        ipc_section: s.code || s.ipc_section || 'N/A',
+        bns_section: s.code || s.bns_section || 'N/A',
+        title:       s.name || s.title || 'Unknown',
+        confidence:  (s.confidence || 70) > 1 ? (s.confidence || 70) / 100 : (s.confidence || 70),
+        reasoning:   s.reasoning || s.description || '',
+        severity:    s.bailable === false ? 'non-bailable' : 'bailable',
+        is_cognizable: s.cognizable ?? false,
+        punishment:  s.punishment || '',
+      })),
+      summary:             ar.summary || ar.explanation || '',
+      provider_used:       ar.provider_used || 'gemini',
+      analysis_id:         ar.analysis_id || id,
+      cached:              ar.cached ?? false,
+      processing_time_ms:  ar.processing_time_ms || 0,
+      disclaimer:          ar.disclaimer || 'AI-generated analysis. Consult a qualified lawyer.',
+    };
+  }
+
+  // Map evidenceFiles → evidence (new schema)
+  if (!data.evidence && data.evidenceFiles) {
+    data.evidence = (data.evidenceFiles || []).map((f: any) => ({
+      id:          f.id || `ev_${Date.now()}`,
+      title:       f.fileName || 'Evidence File',
+      type:        'document' as const,
+      description: f.fileName || '',
+      addedAt:     f.uploadedAt || new Date().toISOString(),
+      strength:    'moderate' as const,
+    }));
+  }
+
+  // Guarantee safe defaults so UI never receives undefined
+  if (!data.analysis) {
+    data.analysis = { sections: [], summary: '', provider_used: '', analysis_id: id, cached: false, processing_time_ms: 0, disclaimer: '' };
+  }
+  data.analysis.sections = data.analysis.sections || [];
+  data.evidence  = data.evidence  || [];
+  data.tags      = data.tags      || [];
+  data.strength  = data.strength  ?? 0;
+  data.status    = data.status    || 'new';
+  data.title     = data.title     || data.caseType || 'Untitled Case';
+  data.caseText  = data.caseText  || data.description || '';
+  data.createdAt = data.createdAt?.toDate?.()?.toISOString?.() ?? data.createdAt ?? new Date().toISOString();
+  data.updatedAt = data.updatedAt?.toDate?.()?.toISOString?.() ?? data.updatedAt ?? data.createdAt;
+
+  return { id, ...data } as SavedCase;
+}
+
 // ── READ ALL (for current user) ───────────────────────────────────────────────
 export async function getAllCases(userId: string): Promise<SavedCase[]> {
   try {
@@ -98,7 +154,7 @@ export async function getAllCases(userId: string): Promise<SavedCase[]> {
       orderBy('createdAt', 'desc')
     );
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as SavedCase));
+    return snap.docs.map(d => normalizeCase(d.id, d.data() as Record<string, any>));
   } catch {
     return [];
   }
@@ -109,7 +165,7 @@ export async function getCaseById(id: string): Promise<SavedCase | null> {
   try {
     const snap = await getDoc(doc(db, COL, id));
     if (!snap.exists()) return null;
-    return { id: snap.id, ...snap.data() } as SavedCase;
+    return normalizeCase(snap.id, snap.data() as Record<string, any>);
   } catch {
     return null;
   }
