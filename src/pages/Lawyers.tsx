@@ -206,25 +206,27 @@ const Lawyers = () => {
     try {
       const selectedCaseData = userCases.find(c => c.id === selectedCase);
 
+      // Build payload — every field must be a non-null, non-undefined string
+      // because Firestore silently strips null/undefined which then fails security rules
       const consultationRequest: any = {
-        userId: user.uid,
+        userId: user.uid || 'unknown',
         userName: user.email?.split('@')[0] || 'User',
         userEmail: user.email || '',
-        lawyerId: selectedLawyer.id || selectedLawyer.barNumber,
-        lawyerName: selectedLawyer.name,
-        lawyerBarNumber: selectedLawyer.barNumber,
+        lawyerId: (selectedLawyer.id || selectedLawyer.barNumber || 'lawyer_unspecified'),
+        lawyerName: selectedLawyer.name || 'Unknown Lawyer',
+        lawyerBarNumber: selectedLawyer.barNumber || 'N/A',
         
         // Case Information
         caseType: selectedCaseData?.caseType || 'General Consultation',
-        caseSubject,
-        message,
-        specificQuestions: specificQuestions || null,
+        caseSubject: caseSubject || 'General Inquiry',
+        message: message || '',
+        specificQuestions: specificQuestions || '',
         
         // Consultation Details
-        preferredDate,
-        preferredTime,
-        consultationType,
-        urgencyLevel,
+        preferredDate: preferredDate || '',
+        preferredTime: preferredTime || '',
+        consultationType: consultationType || 'video',
+        urgencyLevel: urgencyLevel || 'medium',
         
         // Metadata
         status: 'pending',
