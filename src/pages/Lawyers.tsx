@@ -210,6 +210,7 @@ const Lawyers = () => {
         userId: user.uid,
         userName: user.email?.split('@')[0] || 'User',
         userEmail: user.email || '',
+        lawyerId: selectedLawyer.id || selectedLawyer.barNumber,
         lawyerName: selectedLawyer.name,
         lawyerBarNumber: selectedLawyer.barNumber,
         

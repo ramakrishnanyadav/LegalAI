@@ -100,6 +100,7 @@ export default function RecommendedLawyerCard({ caseId, caseType = 'Legal Matter
         userId: user.uid,
         userName: user.email?.split('@')[0] || 'Unknown User',
         userEmail: user.email || '',
+        lawyerId: bestMatch.id,
         lawyerName: bestMatch.name,
         lawyerBarNumber: bestMatch.barNumber,
         caseId: caseId || 'unknown_case',
