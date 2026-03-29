@@ -67,12 +67,14 @@ export default function RecommendedLawyerCard({ caseId, caseType = 'Legal Matter
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
 
-  // Intelligent Law Matcher
+  // Intelligent Law Matcher safely handles undefined caseType
+  const safeCaseType = (caseType || 'Legal Matter').toLowerCase();
+  
   const bestMatch = PREMIER_COUNSEL.find(lawyer => 
-    lawyer.specializations.some((spec: string) => 
-      caseType?.toLowerCase().includes(spec.toLowerCase()) || 
-      spec.toLowerCase().includes(caseType?.toLowerCase())
-    )
+    lawyer.specializations.some((spec: string) => {
+      const safeSpec = spec.toLowerCase();
+      return safeCaseType.includes(safeSpec) || safeSpec.includes(safeCaseType);
+    })
   ) || PREMIER_COUNSEL[0]; // Fallback to priority lawyer if no exact tag matches
 
   useEffect(() => {

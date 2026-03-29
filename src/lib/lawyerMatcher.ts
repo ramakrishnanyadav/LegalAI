@@ -224,7 +224,7 @@ function calculateMatchScore(
     const relevantAreas = PRACTICE_AREA_MAPPING[sectionCode] || [];
     
     relevantAreas.forEach((area) => {
-      if (lawyer.practiceAreas.some(pa => pa.toLowerCase().includes(area.toLowerCase()))) {
+      if ((lawyer.practiceAreas || []).some(pa => (pa || '').toLowerCase().includes(area.toLowerCase()))) {
         matchedAreas.add(area);
         specialtyMatchCount++;
         
@@ -246,11 +246,10 @@ function calculateMatchScore(
     score += 10;
   }
 
-  // Check practice areas against case type
   if (caseType) {
     const caseAreas = CASE_TYPE_MAPPING[caseType.toLowerCase()] || [];
     caseAreas.forEach((area) => {
-      if (lawyer.practiceAreas.some(pa => pa.toLowerCase().includes(area.toLowerCase()))) {
+      if ((lawyer.practiceAreas || []).some(pa => (pa || '').toLowerCase().includes(area.toLowerCase()))) {
         matchedAreas.add(area);
         score += 15; // Reduced from 20 (sections more important than case type)
       }

@@ -162,26 +162,36 @@ const Lawyers = () => {
     setModalStep(1);
   };
 
-  // Filter and sort lawyers
+  // Filter and sort lawyers safely
   const filteredLawyers = lawyers
     .filter((lawyer) => {
-      const matchesSearch = lawyer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lawyer.practiceAreas.some(area => area.toLowerCase().includes(searchQuery.toLowerCase()));
+      // Safe fallback for potentially undefined fields from Firestore
+      const safeName = lawyer.name || '';
+      const safePracticeAreas = lawyer.practiceAreas || [];
+      const safeCity = lawyer.city || '';
+
+      const nameMatch = safeName.toLowerCase().includes(searchQuery.toLowerCase());
+      const areaMatch = safePracticeAreas.some(area => 
+        (area || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      const matchesSearch = nameMatch || areaMatch;
       const matchesPracticeArea = selectedPracticeArea === 'all' || 
-        lawyer.practiceAreas.includes(selectedPracticeArea);
-      const matchesCity = selectedCity === 'all' || lawyer.city === selectedCity;
+        safePracticeAreas.includes(selectedPracticeArea);
+      const matchesCity = selectedCity === 'all' || safeCity === selectedCity;
+      
       return matchesSearch && matchesPracticeArea && matchesCity;
     })
     .sort((a, b) => {
-      if (sortBy === 'experience') return b.yearsOfPractice - a.yearsOfPractice;
+      if (sortBy === 'experience') return (b.yearsOfPractice || 0) - (a.yearsOfPractice || 0);
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-      if (sortBy === 'fee') return a.feeMin - b.feeMin;
+      if (sortBy === 'fee') return (a.feeMin || 0) - (b.feeMin || 0);
       return 0;
     });
 
-  // Get unique practice areas and cities for filters
-  const practiceAreas = Array.from(new Set(lawyers.flatMap(l => l.practiceAreas)));
-  const cities = Array.from(new Set(lawyers.map(l => l.city)));
+  // Get unique practice areas and cities for filters securely
+  const practiceAreas = Array.from(new Set(lawyers.flatMap(l => l.practiceAreas || []))).filter(Boolean);
+  const cities = Array.from(new Set(lawyers.map(l => l.city).filter(Boolean)));
 
   const handleSubmitRequest = async () => {
     if (!selectedLawyer || !user) return;
