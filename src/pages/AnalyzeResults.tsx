@@ -22,6 +22,7 @@ import ActionPlanCard from '@/components/ActionPlanCard';
 import DocumentViewer from '@/components/DocumentViewer';
 import AnimatedButton from '@/components/AnimatedButton';
 import { PremiumFeatureCards } from '@/components/PremiumFeatureCards';
+import RecommendedLawyerCard from '@/components/RecommendedLawyerCard';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { matchLawyers, getMatchPercentage, type Lawyer, type MatchedLawyer } from '@/lib/lawyerMatcher';
@@ -310,6 +311,12 @@ const AnalyzeResults = () => {
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
+            {/* AI Recommended Lawyer 1-Click Booking */}
+            <RecommendedLawyerCard 
+              caseId={location.state?.caseId || 'ANONYMOUS_CASE'} 
+              caseType={location.state?.caseType || 'Legal Matter'} 
+            />
+
             {/* Quick Stats Grid - IPC Sections Highlighted */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <motion.div

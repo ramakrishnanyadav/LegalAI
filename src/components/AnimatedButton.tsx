@@ -10,6 +10,7 @@ interface AnimatedButtonProps {
   loading?: boolean;
   disabled?: boolean;
   icon?: ReactNode;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 // Professional ease-out timing
@@ -24,6 +25,7 @@ const AnimatedButton = ({
   loading = false,
   disabled = false,
   icon,
+  type = 'button',
 }: AnimatedButtonProps) => {
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([]);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -59,6 +61,7 @@ const AnimatedButton = ({
   return (
     <motion.button
       ref={buttonRef}
+      type={type}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       onClick={handleClick}
       style={{
