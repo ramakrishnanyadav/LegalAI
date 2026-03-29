@@ -778,11 +778,23 @@ const Lawyers = () => {
                                 className="w-full px-4 py-3 rounded-xl glass border border-white/10 focus:border-primary/50 focus:outline-none [&>option]:bg-gray-900 [&>option]:text-white"
                               >
                                 <option value="" className="bg-gray-900 text-white">New consultation</option>
-                                {userCases.map((c) => (
-                                  <option key={c.id} value={c.id} className="bg-gray-900 text-white">
-                                    {c.caseType} - {new Date(c.createdAt.toDate()).toLocaleDateString()}
-                                  </option>
-                                ))}
+                                {userCases.map((c) => {
+                                  let dateStr = 'Unknown Date';
+                                  if (c.createdAt) {
+                                    if (typeof c.createdAt.toDate === 'function') {
+                                      dateStr = c.createdAt.toDate().toLocaleDateString();
+                                    } else if ((c.createdAt as any).seconds) {
+                                      dateStr = new Date((c.createdAt as any).seconds * 1000).toLocaleDateString();
+                                    } else {
+                                      dateStr = new Date(c.createdAt as any).toLocaleDateString();
+                                    }
+                                  }
+                                  return (
+                                    <option key={c.id} value={c.id} className="bg-gray-900 text-white">
+                                      {c.caseType} - {dateStr}
+                                    </option>
+                                  );
+                                })}
                               </select>
                             </div>
                           )}
